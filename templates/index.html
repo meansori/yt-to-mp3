@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Audio Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 to-blue-100 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white shadow-2xl rounded-xl border border-gray-100 p-6">
+        <header class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-indigo-600 mb-2">Audio Converter</h1>
+            <p class="text-gray-500">Konversi Video YouTube Menjadi Audio</p>
+        </header>
+        <form id="convert-form" class="space-y-4">
+            <div class="input-group">
+                <label for="url" class="form-label">URL Video YouTube</label>
+                <input 
+                    type="text" 
+                    id="url" 
+                    required 
+                    placeholder="Masukkan URL YouTube" 
+                    class="form-input"
+                >
+            </div>
+            
+            <div class="grid grid-cols-2">
+                <div class="input-group">
+                    <label for="quality" class="form-label">Kualitas Audio</label>
+                    <select id="quality" class="form-input">
+                        <option value="128">128 kbps</option>
+                        <option value="192" selected>192 kbps</option>
+                        <option value="256">256 kbps</option>
+                        <option value="320">320 kbps</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="format" class="form-label">Format Audio</label>
+                    <select id="format" class="form-input">
+                        <option value="mp3" selected>MP3</option>
+                        <option value="wav">WAV</option>
+                        <option value="aac">AAC</option>
+                        <option value="m4a">M4A</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-primary" style="display: ruby-text;">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
+                </svg>
+                <span>Konversi</span>
+            </button>
+        </form>
+        
+        <div id="result" class="mt-4 text-center"></div>
+    </div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('convert-form');
+        const resultDiv = document.getElementById('result');
+    
+        // Tambahkan custom styles
+        const styles = `
+            .form-label { @apply block text-sm font-medium text-gray-700 mb-1; }
+            .form-input { 
+                @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
+                focus:outline-none focus:ring-2 focus:ring-indigo-500; 
+            }
+            .btn-primary { 
+                @apply w-full bg-indigo-600 text-white py-2 rounded-md 
+                hover:bg-indigo-700 transition-colors duration-300 
+                flex items-center justify-center space-x-2; 
+            }
+            .loading-spinner {
+                @apply flex items-center justify-center space-x-2 text-indigo-600;
+            }
+            .success-message {
+                @apply bg-green-50 border border-green-200 rounded-lg p-4 space-y-3;
+            }
+            .error-message {
+                @apply bg-red-50 border border-red-200 rounded-lg p-4 
+                flex items-center justify-center space-x-2 text-red-600;
+            }
+        `;
+    
+        // Tambahkan style ke head
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = styles;
+        document.head.appendChild(styleSheet);
+    
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const url = document.getElementById('url').value;
+            const quality = document.getElementById('quality').value;
+            const format = document.getElementById('format').value;
+            
+            // Tampilkan loading
+            resultDiv.innerHTML = `
+                <div class="loading-spinner">
+                    <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Sedang mengonversi...</span>
+                </div>
+            `;
+            
+            try {
+                const response = await axios.post('/convert', { 
+                    url, 
+                    quality, 
+                    format 
+                });
+    
+                resultDiv.innerHTML = `
+                    <div class="success-message">
+                        <div class="flex justify-center">
+                            <a href="${response.data.audio_url}" download 
+                               class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Unduh Audio</span>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error-message">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Gagal mengonversi: ${error.response?.data?.message || 'Kesalahan tidak dikenal'}</span>
+                    </div>
+                `;
+            }
+        });
+    });
+    </script>
+</body>
+</html>
